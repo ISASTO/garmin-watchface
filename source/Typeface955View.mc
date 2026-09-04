@@ -14,6 +14,7 @@ class Typeface955View extends WatchUi.WatchFace {
 
     function onShow() {
         _renderer.reloadSettings();
+        _renderer.refreshBatteryNow();
     }
 
     function reloadSettings() {
