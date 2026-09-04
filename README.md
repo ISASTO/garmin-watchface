@@ -25,11 +25,17 @@ Build/install using `BUILD-AND-INSTALL-WINDOWS.md`.
 ## Battery and rendering work
 
 This personal Forerunner 955 build keeps the complete-frame redraw required by
-real hardware, but minimizes work between minute changes:
+real hardware, but minimizes work between visible data changes:
 
 - Time is formatted only when the minute changes.
-- Date and battery are queried/formatted only when the hour changes (plus first
-  launch or an immediately relevant settings change).
+- Date is queried/formatted only when the hour changes.
+- Battery percentage comes from Garmin's native battery complication instead of
+  normal hourly polling. Garmin notifies the face when the value changes, which
+  keeps charging updates fresh without adding a timer.
+- When the face becomes visible, it reads the battery complication once so the
+  first glance after charging is current.
+- `System.getSystemStats()` remains only as an hourly fallback if the native
+  complication subscription cannot be established.
 - Weekday labels, center coordinates, justification, and optical time position
   are cached/constants rather than rebuilt every frame.
 - Time font atlases are native hard-edge 1-bit black/white resources and are
@@ -45,6 +51,9 @@ Date and battery fonts remain separate because the current design intentionally
 uses different native pixel sizes for the date and battery at every named size.
 A single bitmap-font resource cannot provide two native sizes for the same glyph
 without scaling one of them, which would undo the sharpness work.
+
+The battery complication API requires Connect IQ 4.2.0, so this project targets
+API 4.2.0 and requests the `ComplicationSubscriber` permission.
 
 ## Project layout
 
