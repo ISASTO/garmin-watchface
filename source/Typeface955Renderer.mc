@@ -133,7 +133,7 @@ class Typeface955Renderer {
         _batterySubscriptionActive = false;
     }
 
-    function onBatteryComplicationChanged(complicationId) {
+    function onBatteryComplicationChanged(complicationId as Complications.Id) as Void {
         if (_batteryComplicationId == null || !complicationId.equals(_batteryComplicationId)) {
             return;
         }
