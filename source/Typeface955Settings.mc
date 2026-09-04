@@ -39,7 +39,7 @@ class Typeface955SettingsView extends WatchUi.View {
             case 0: cycleFont(); break;
             case 1: cycleNumber("dateSizeChoice", 4, 1); break;
             case 2: cycleNumber("batterySizeChoice", 4, 1); break;
-            case 3: toggleBoolean("showPercent", true); break;
+            case 3: toggleBoolean("showPercent"); break;
             case 4: cycleColor("timeColorChoice", 0); break;
             case 5: cycleColor("dateColorChoice", 0); break;
             case 6: cycleColor("batteryColorChoice", 0); break;
@@ -80,9 +80,8 @@ class Typeface955SettingsView extends WatchUi.View {
         Application.Properties.setValue(key, value);
     }
 
-    function toggleBoolean(key, fallback) {
+    function toggleBoolean(key) {
         var value = Application.Properties.getValue(key);
-        if (value == null) { value = fallback; }
         Application.Properties.setValue(key, !value);
     }
 
