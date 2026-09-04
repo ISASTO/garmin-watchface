@@ -1,0 +1,5 @@
+project.manifest = manifest.xml
+# Highest documented compiler optimization plus the performance pass.
+# In VS Code, leave Monkey C > Compiler Options > Optimization at Default so
+# this per-project setting is not overridden by a command-line -O argument.
+project.optimization = 3p

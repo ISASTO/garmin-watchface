@@ -1,0 +1,15 @@
+# Garmin Connect IQ compiler output
+bin/
+build/
+gen/
+internal-mir/
+mir/
+*.prg
+*.prg.debug.xml
+*-settings.json
+
+# Local editor and developer-key files
+.vscode/
+*.der
+*.pem
+*.key

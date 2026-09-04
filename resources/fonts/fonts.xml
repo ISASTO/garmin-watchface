@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!-- Time typefaces; private 24-hour HHMM build, digits only.
+         Selector order: Smackers, Nautica, Cleo, Pincoya, Alien. -->
+    <font id="TimeSmackers" filename="TimeSmackers.fnt" antialias="false" filter="0123456789"/>
+    <font id="TimeCleoFolk" filename="TimeCleoFolk.fnt" antialias="false" filter="0123456789"/>
+    <font id="TimeNautica" filename="TimeNautica.fnt" antialias="false" filter="0123456789"/>
+    <font id="TimePincoyaBlack" filename="TimePincoyaBlack.fnt" antialias="false" filter="0123456789"/>
+    <font id="TimeAlienPlanet" filename="TimeAlienPlanet.fnt" antialias="false" filter="0123456789"/>
+
+    <!-- Date sizes: Large 150%, Normal 100%, Small 75%, Tiny 50%. -->
+    <font id="InfoTommyLarge" filename="InfoTommyLarge.fnt" antialias="false" filter=" 0123456789ADEFHIMNORSTUW"/>
+    <font id="InfoTommy" filename="InfoTommy.fnt" antialias="true" filter=" 0123456789ADEFHIMNORSTUW"/>
+    <font id="InfoTommySmall" filename="InfoTommySmall.fnt" antialias="true" filter=" 0123456789ADEFHIMNORSTUW"/>
+    <font id="InfoTommyTiny" filename="InfoTommyTiny.fnt" antialias="true" filter=" 0123456789ADEFHIMNORSTUW"/>
+
+    <font id="BatteryTommyLarge" filename="BatteryTommyLarge.fnt" antialias="false" filter=" %0123456789"/>
+    <font id="BatteryTommy" filename="BatteryTommy.fnt" antialias="true" filter=" %0123456789"/>
+    <font id="BatteryTommySmall" filename="BatteryTommySmall.fnt" antialias="true" filter=" %0123456789"/>
+    <font id="BatteryTommyTiny" filename="BatteryTommyTiny.fnt" antialias="true" filter=" %0123456789"/>
+
+</resources>

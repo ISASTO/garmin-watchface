@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <properties>
+        <!-- Default: Smackers (0). Kept IDs: 0=Smackers, 2=Nautica, 3=Cleo, 6=Pincoya, 10=Alien. Removed/unknown IDs fall back to Smackers. -->
+        <property id="fontChoice" type="number">0</property>
+        <property id="dateSizeChoice" type="number">1</property>
+        <property id="batterySizeChoice" type="number">1</property>
+        <property id="showPercent" type="boolean">true</property>
+        <property id="timeColorChoice" type="number">0</property>
+        <property id="dateColorChoice" type="number">0</property>
+        <property id="batteryColorChoice" type="number">0</property>
+        <property id="backgroundColorChoice" type="number">3</property>
+    </properties>
+</resources>

@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string id="AppName">Typeface 955</string>
+    <string id="SettingsTitle" scope="settings">Typeface 955 Settings</string>
+    <string id="FontSettingTitle" scope="settings">Typeface</string>
+    <string id="FontSettingPrompt" scope="settings">Choose the time typeface</string>
+    <string id="FontSmackers" scope="settings">Smackers</string>
+    <string id="FontCleoFolk" scope="settings">Cleo</string>
+    <string id="FontNautica" scope="settings">Nautica</string>
+    <string id="FontPincoyaBlack" scope="settings">Pincoya</string>
+    <string id="FontAlienPlanet" scope="settings">Alien</string>
+    <string id="DateSizeTitle" scope="settings">Date size</string>
+    <string id="BatterySizeTitle" scope="settings">Battery size</string>
+    <string id="SizeLarge" scope="settings">Large</string>
+    <string id="SizeNormal" scope="settings">Normal</string>
+    <string id="SizeSmall" scope="settings">Small</string>
+    <string id="SizeTiny" scope="settings">Tiny</string>
+    <string id="PercentSymbolTitle" scope="settings">Show percent symbol</string>
+    <string id="TimeColorTitle" scope="settings">Time color</string>
+    <string id="DateColorTitle" scope="settings">Date color</string>
+    <string id="BatteryColorTitle" scope="settings">Battery color</string>
+    <string id="BackgroundColorTitle" scope="settings">Background color</string>
+    <string id="ColorWhite" scope="settings">White</string>
+    <string id="ColorBlack" scope="settings">Black</string>
+    <string id="ColorRed" scope="settings">Red</string>
+    <string id="ColorOrange" scope="settings">Orange</string>
+    <string id="ColorYellow" scope="settings">Yellow</string>
+    <string id="ColorGreen" scope="settings">Green</string>
+    <string id="ColorBlue" scope="settings">Blue</string>
+    <string id="ColorPurple" scope="settings">Purple</string>
+    <string id="ColorPink" scope="settings">Pink</string>
+</resources>
