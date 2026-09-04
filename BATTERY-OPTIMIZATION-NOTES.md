@@ -1,4 +1,4 @@
-# Battery optimization notes (v2.6)
+# Battery optimization notes (v2.7)
 
 Forerunner 955-specific private build.
 
@@ -8,7 +8,13 @@ Implemented:
 - `System.getClockTime()` is the only normal per-callback data query.
 - HHMM formatting occurs only when the minute changes.
 - Calendar/date lookup occurs only when the hour changes.
-- Battery/system-stats lookup occurs only when the hour changes.
+- Battery percentage uses Garmin's native `COMPLICATION_TYPE_BATTERY` publish/
+  subscribe path. Garmin notifies the face when the value changes, so charging
+  updates stay fresh without adding a polling timer.
+- The complication is read once when the face becomes visible so the first
+  post-charge glance is current even if a notification arrived while hidden.
+- `System.getSystemStats()` is retained only as an hourly fallback if native
+  complication subscription is unavailable.
 - Weekday names, geometry, justification, colors, and optical Y offsets are
   cached/constants instead of reconstructed in the hot path.
 - No seconds, timers, animations, or `onPartialUpdate()`.
@@ -20,6 +26,13 @@ Implemented:
   excluded from the normal runtime resource set.
 - Jungle requests `project.optimization = 3p`.
 
+Complication details:
+- Connect IQ minimum API is 4.2.0.
+- Manifest requests the `ComplicationSubscriber` permission.
+- Subscription starts with the app and is removed on stop.
+- Battery callbacks update only the cached battery string and request a redraw.
+- There is no charging-state timer and no per-frame battery polling.
+
 Not implemented intentionally:
 - No full-screen `BufferedBitmap`; the face is too simple to justify its memory
   and graphics-pool cost without hardware profiling proving a benefit.
@@ -30,6 +43,6 @@ Not implemented intentionally:
   would reduce sharpness.
 
 Recommended next measurement:
-Build a profiling version with Garmin's `-k`/profiling support and compare
-function timings on the physical Forerunner 955. Do not use a profiling build as
-an everyday battery-life build.
+Build a profiling version with Garmin's `-k`/profiling support only if real-world
+battery drain remains suspicious. Do not use a profiling build as the everyday
+battery-life build.
