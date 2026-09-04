@@ -6,11 +6,13 @@
         name="@Strings.AppName"
         entry="Typeface955App"
         launcherIcon="@Drawables.LauncherIcon"
-        minApiLevel="4.0.0">
+        minApiLevel="4.2.0">
         <iq:products>
             <iq:product id="fr955"/>
         </iq:products>
-        <iq:permissions/>
+        <iq:permissions>
+            <iq:uses-permission id="ComplicationSubscriber"/>
+        </iq:permissions>
         <iq:languages>
             <iq:language>eng</iq:language>
         </iq:languages>
