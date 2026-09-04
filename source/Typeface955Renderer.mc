@@ -1,4 +1,5 @@
 import Toybox.Application;
+import Toybox.Complications;
 import Toybox.Graphics;
 import Toybox.System;
 import Toybox.Time;
@@ -52,6 +53,9 @@ class Typeface955Renderer {
     private var _timeText;
     private var _dateText;
     private var _batteryText;
+    private var _cachedBatteryValue;
+    private var _batteryComplicationId;
+    private var _batterySubscriptionActive;
 
     function initialize() {
         _timeFont = null;
@@ -73,7 +77,14 @@ class Typeface955Renderer {
         _loadedDateSize = -1;
         _loadedBatterySize = -1;
 
-        invalidateDataCache();
+        _cachedHour = -1;
+        _cachedMinute = -1;
+        _timeText = null;
+        _dateText = null;
+        _batteryText = null;
+        _cachedBatteryValue = null;
+        _batteryComplicationId = null;
+        _batterySubscriptionActive = false;
     }
 
     function invalidateDataCache() {
@@ -81,7 +92,100 @@ class Typeface955Renderer {
         _cachedMinute = -1;
         _timeText = null;
         _dateText = null;
-        _batteryText = null;
+    }
+
+    function startBatteryUpdates() {
+        // Battery is a native Garmin complication on the Forerunner 955.
+        // Subscribe once so Garmin tells us when the percentage actually
+        // changes instead of polling System.getSystemStats() every hour.
+        try {
+            _batteryComplicationId = new Complications.Id(Complications.COMPLICATION_TYPE_BATTERY);
+            Complications.registerComplicationChangeCallback(self.method(:onBatteryComplicationChanged));
+            _batterySubscriptionActive = Complications.subscribeToUpdates(_batteryComplicationId);
+
+            if (_batterySubscriptionActive) {
+                refreshBatteryFromComplication();
+            }
+        } catch (e) {
+            _batterySubscriptionActive = false;
+        }
+
+        // Defensive fallback for a firmware/API failure. This is normally not
+        // used on the 955, which officially supports battery complications.
+        if (!_batterySubscriptionActive) {
+            sampleBatteryFallback();
+        }
+    }
+
+    function stopBatteryUpdates() {
+        if (_batterySubscriptionActive && _batteryComplicationId != null) {
+            try {
+                Complications.unsubscribeFromUpdates(_batteryComplicationId);
+            } catch (e) {
+            }
+        }
+
+        try {
+            Complications.registerComplicationChangeCallback(null);
+        } catch (e) {
+        }
+
+        _batterySubscriptionActive = false;
+    }
+
+    function onBatteryComplicationChanged(complicationId) {
+        if (_batteryComplicationId == null || !complicationId.equals(_batteryComplicationId)) {
+            return;
+        }
+
+        if (refreshBatteryFromComplication()) {
+            // While charging the native value can change several times between
+            // normal watch-face samples. Redraw only when Garmin publishes one.
+            WatchUi.requestUpdate();
+        }
+    }
+
+    function refreshBatteryNow() {
+        // onShow() uses this so the first glance after charging is current even
+        // if the face was not visible when a complication notification arrived.
+        if (_batterySubscriptionActive) {
+            refreshBatteryFromComplication();
+        } else {
+            sampleBatteryFallback();
+        }
+    }
+
+    function refreshBatteryFromComplication() {
+        if (_batteryComplicationId == null) {
+            return false;
+        }
+
+        try {
+            var battery = Complications.getComplication(_batteryComplicationId);
+            if (battery.value == null) {
+                return false;
+            }
+
+            _cachedBatteryValue = battery.value;
+            rebuildBatteryText();
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function sampleBatteryFallback() {
+        _cachedBatteryValue = System.getSystemStats().battery;
+        rebuildBatteryText();
+    }
+
+    function rebuildBatteryText() {
+        if (_cachedBatteryValue == null) {
+            _batteryText = null;
+            return;
+        }
+
+        _batteryText = _cachedBatteryValue.format("%.0f") + (_showPercent ? "%" : "");
     }
 
     function reloadSettings() {
@@ -104,10 +208,9 @@ class Typeface955Renderer {
         loadDateFontIfNeeded();
         loadBatteryFontIfNeeded();
 
-        // A percent-symbol setting change must be visible immediately instead
-        // of waiting for the next hourly battery sample.
+        // Reformat the already-cached value; do not perform a new battery query.
         if (oldShowPercent != _showPercent) {
-            _batteryText = null;
+            rebuildBatteryText();
         }
     }
 
@@ -207,8 +310,7 @@ class Typeface955Renderer {
     }
 
     function updateCachedData() {
-        // This is the only per-callback system query. getClockTime() is enough
-        // to decide whether any visible information can have changed.
+        // This remains the only normal per-callback system query.
         var clock = System.getClockTime();
         var hourChanged = (clock.hour != _cachedHour);
         var minuteChanged = (clock.min != _cachedMinute) || hourChanged || _timeText == null;
@@ -219,15 +321,17 @@ class Typeface955Renderer {
             _timeText = clock.hour.format("%02d") + clock.min.format("%02d");
         }
 
-        // Date and battery are intentionally sampled only on an hour boundary.
-        // Null checks handle first launch and a percent-symbol setting change.
+        // Calendar work stays hourly. Battery is event-driven through Garmin
+        // complications and therefore does not belong in the normal hot path.
         if (hourChanged || _dateText == null) {
             var today = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
             _dateText = weekdayText(today.day_of_week) + " " + today.day.format("%d");
         }
 
-        if (hourChanged || _batteryText == null) {
-            _batteryText = System.getSystemStats().battery.format("%.0f") + (_showPercent ? "%" : "");
+        // If native complication subscription was unavailable, preserve the
+        // old once-per-hour system-stats fallback.
+        if (!_batterySubscriptionActive && (hourChanged || _batteryText == null)) {
+            sampleBatteryFallback();
         }
     }
 
