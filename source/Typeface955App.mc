@@ -11,6 +11,14 @@ class Typeface955App extends Application.AppBase {
         _mainView = null;
     }
 
+    function onStart(state) {
+        _renderer.startBatteryUpdates();
+    }
+
+    function onStop(state) {
+        _renderer.stopBatteryUpdates();
+    }
+
     function getInitialView() {
         _renderer.reloadSettings();
         _mainView = new Typeface955View(_renderer);
