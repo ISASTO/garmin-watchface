@@ -22,9 +22,8 @@ class Typeface955View extends WatchUi.WatchFace {
     }
 
     function onUpdate(dc) {
-        // Draw the complete frame on every Garmin onUpdate callback. The 955
-        // throttles low-power watch-face updates itself; skipping a requested
-        // redraw can produce a black frame on real hardware.
+        // Draw the complete frame on every Garmin callback. The watch controls
+        // low-power update frequency; the renderer keeps unchanged data cached.
         _renderer.draw(dc);
     }
 }
