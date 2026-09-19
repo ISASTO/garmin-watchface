@@ -1,70 +1,22 @@
-# Typeface 955
+# Typeface 955 — fēnix 6 Sapphire branch
 
-A deliberately simple watch face for the Garmin Forerunner 955. It puts the time first, with the date above it and the battery below it.
+This branch adapts Typeface 955 for the **fēnix 6 Sapphire**.
 
-![Typeface 955 showing Friday the 4th, 10:09, and 100% battery](preview/Typeface955-Default.png)
+Garmin groups the fēnix 6 Sapphire with the **fēnix 6 Pro** Connect IQ device family (`fenix6pro`). It has a 260×260 Memory-in-Pixel display, the same resolution as the Forerunner 955, but its Connect IQ API level is 3.4.
 
-Time is fixed to **24-hour HHMM** with no colon. Battery position is fixed to the balanced location. Fresh installs default to **Smackers**.
+## Differences from the Forerunner 955 build
 
-## Time typefaces and selector order
-1. Smackers
-2. Nautica
-3. Cleo
-4. Pincoya
-5. Alien
+- Target product: `fenix6pro` (covers fēnix 6 Pro / 6 Sapphire / 6 Pro Solar family).
+- Minimum Connect IQ API: 3.4.0.
+- Geometry remains 260×260 with date/time/battery centers at 57 / 130 / 203 px.
+- The API 4.2 battery-complication subscription is removed.
+- Battery percentage is sampled once per hour and whenever the watch face becomes visible.
+- All font, size, color, percent-symbol, and on-watch settings behavior is otherwise retained.
 
-UP/DOWN moves between settings; START cycles the selected value while the actual face remains visible. Remaining settings: typeface, date size, battery size, percent symbol, and time/date/battery/background colors.
+Time is fixed to **24-hour HHMM** with no colon. Fresh installs default to **Smackers**.
 
-Date/time/battery centers remain vertically symmetric (57 / 130 / 203 px). Cleo retains its tested optical correction for internal glyph whitespace. Date and battery always use the normal secondary typeface, regardless of the selected time font.
+## Build target
 
-## Color palette
-Black, Red, Orange, Yellow, Green, Blue, Purple, Pink, White.
+In Visual Studio Code, check out this branch and run **Monkey C: Build for Device**. Select **fēnix 6 Pro**. Garmin uses that target for the fēnix 6 Sapphire.
 
-Build/install using `BUILD-AND-INSTALL-WINDOWS.md`.
-
-## Battery and rendering work
-
-This personal Forerunner 955 build keeps the complete-frame redraw required by
-real hardware, but minimizes work between visible data changes:
-
-- Time is formatted only when the minute changes.
-- Date is queried/formatted only when the hour changes.
-- Battery percentage comes from Garmin's native battery complication instead of
-  normal hourly polling. Garmin notifies the face when the value changes, which
-  keeps charging updates fresh without adding a timer.
-- When the face becomes visible, it reads the battery complication once so the
-  first glance after charging is current.
-- `System.getSystemStats()` remains only as an hourly fallback if the native
-  complication subscription cannot be established.
-- Weekday labels, center coordinates, justification, and optical time position
-  are cached/constants rather than rebuilt every frame.
-- Time font atlases are native hard-edge 1-bit black/white resources and are
-  imported with antialiasing disabled.
-- Font resources remain loaded outside the screen-update hot path.
-- No seconds, timers, animations, or partial updates are used.
-- `project.optimization = 3p` requests Garmin's highest documented numeric
-  optimization plus performance optimizations. In VS Code leave the global
-  Monkey C optimization setting at Default or its command-line flag can override
-  the Jungle setting.
-
-Date and battery fonts remain separate because the current design intentionally
-uses different native pixel sizes for the date and battery at every named size.
-A single bitmap-font resource cannot provide two native sizes for the same glyph
-without scaling one of them, which would undo the sharpness work.
-
-The battery complication API requires Connect IQ 4.2.0, so this project targets
-API 4.2.0 and requests the `ComplicationSubscriber` permission.
-
-## Project layout
-
-- `source/` contains the Monkey C application, renderer, and on-watch settings UI.
-- `resources/` contains the bitmap fonts, settings, strings, and launcher icon.
-- `preview/` contains a simulator capture of the default face.
-- `BATTERY-OPTIMIZATION-NOTES.md` explains the rendering and caching decisions in more detail.
-- `BUILD-AND-INSTALL-WINDOWS.md` covers simulator use and sideloading to a watch.
-
-## Build and install
-
-Install Garmin's Connect IQ SDK and Monkey C extension, open this repository in Visual Studio Code, and follow [`BUILD-AND-INSTALL-WINDOWS.md`](BUILD-AND-INSTALL-WINDOWS.md).
-
-The project targets the Forerunner 955 and has been tested on physical hardware. I have not run a controlled battery comparison against a stock Garmin face, so the repository does not claim a measured battery-life improvement.
+The generated `.prg` is the file to sideload into the watch's `GARMIN/APPS` folder.
