@@ -1,19 +1,19 @@
 import Toybox.Application;
-import Toybox.Complications;
 import Toybox.Graphics;
 import Toybox.System;
 import Toybox.Time;
 import Toybox.Time.Gregorian;
 import Toybox.WatchUi;
 
-// Shared renderer for the normal face and the live settings preview.
-// Battery-optimized for the Forerunner 955's watch-face lifecycle.
+// Fenix 6S / 6S Pro renderer.
+// This branch targets Connect IQ 3.4, so it intentionally does not use the
+// API 4.2 battery complication subscription used by the Forerunner 955 build.
 class Typeface955Renderer {
-    // Fixed 260x260 Forerunner 955 geometry. Avoid querying width every frame.
-    private const CENTER_X = 130;
-    private const DATE_Y = 57;
-    private const TIME_Y = 130;
-    private const BATTERY_Y = 203;
+    // Fixed 240x240 Fenix 6S geometry.
+    private const CENTER_X = 120;
+    private const DATE_Y = 53;
+    private const TIME_Y = 120;
+    private const BATTERY_Y = 187;
     private const CLEO_TIME_Y_OFFSET = -8;
     private const TEXT_JUSTIFY = Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER;
 
@@ -44,18 +44,12 @@ class Typeface955Renderer {
     private var _loadedDateSize;
     private var _loadedBatterySize;
 
-    // Display-data cache. Garmin calls onUpdate() every second for roughly ten
-    // seconds after a wrist gesture, even though this face contains no seconds.
-    // We still draw a complete frame on every callback (required on real 955
-    // hardware), but avoid re-querying/reformatting unchanged data.
     private var _cachedHour;
     private var _cachedMinute;
     private var _timeText;
     private var _dateText;
     private var _batteryText;
     private var _cachedBatteryValue;
-    private var _batteryComplicationId;
-    private var _batterySubscriptionActive;
 
     function initialize() {
         _timeFont = null;
@@ -83,8 +77,6 @@ class Typeface955Renderer {
         _dateText = null;
         _batteryText = null;
         _cachedBatteryValue = null;
-        _batteryComplicationId = null;
-        _batterySubscriptionActive = false;
     }
 
     function invalidateDataCache() {
@@ -94,87 +86,13 @@ class Typeface955Renderer {
         _dateText = null;
     }
 
-    function startBatteryUpdates() {
-        // Battery is a native Garmin complication on the Forerunner 955.
-        // Subscribe once so Garmin tells us when the percentage actually
-        // changes instead of polling System.getSystemStats() every hour.
-        try {
-            _batteryComplicationId = new Complications.Id(Complications.COMPLICATION_TYPE_BATTERY);
-            Complications.registerComplicationChangeCallback(self.method(:onBatteryComplicationChanged));
-            _batterySubscriptionActive = Complications.subscribeToUpdates(_batteryComplicationId);
-
-            if (_batterySubscriptionActive) {
-                refreshBatteryFromComplication();
-            }
-        } catch (e) {
-            _batterySubscriptionActive = false;
-        }
-
-        // Defensive fallback for a firmware/API failure. This is normally not
-        // used on the 955, which officially supports battery complications.
-        if (!_batterySubscriptionActive) {
-            sampleBatteryFallback();
-        }
-    }
-
-    function stopBatteryUpdates() {
-        if (_batterySubscriptionActive && _batteryComplicationId != null) {
-            try {
-                Complications.unsubscribeFromUpdates(_batteryComplicationId);
-            } catch (e) {
-            }
-        }
-
-        try {
-            Complications.registerComplicationChangeCallback(null);
-        } catch (e) {
-        }
-
-        _batterySubscriptionActive = false;
-    }
-
-    function onBatteryComplicationChanged(complicationId as Complications.Id) as Void {
-        if (_batteryComplicationId == null || !complicationId.equals(_batteryComplicationId)) {
-            return;
-        }
-
-        if (refreshBatteryFromComplication()) {
-            // While charging the native value can change several times between
-            // normal watch-face samples. Redraw only when Garmin publishes one.
-            WatchUi.requestUpdate();
-        }
-    }
-
     function refreshBatteryNow() {
-        // onShow() uses this so the first glance after charging is current even
-        // if the face was not visible when a complication notification arrived.
-        if (_batterySubscriptionActive) {
-            refreshBatteryFromComplication();
-        } else {
-            sampleBatteryFallback();
-        }
+        // Refresh once whenever the face becomes visible. This is useful after
+        // charging without adding a timer or extra polling during normal use.
+        sampleBattery();
     }
 
-    function refreshBatteryFromComplication() {
-        if (_batteryComplicationId == null) {
-            return false;
-        }
-
-        try {
-            var battery = Complications.getComplication(_batteryComplicationId);
-            if (battery.value == null) {
-                return false;
-            }
-
-            _cachedBatteryValue = battery.value;
-            rebuildBatteryText();
-            return true;
-        } catch (e) {
-            return false;
-        }
-    }
-
-    function sampleBatteryFallback() {
+    function sampleBattery() {
         _cachedBatteryValue = System.getSystemStats().battery;
         rebuildBatteryText();
     }
@@ -208,7 +126,6 @@ class Typeface955Renderer {
         loadDateFontIfNeeded();
         loadBatteryFontIfNeeded();
 
-        // Reformat the already-cached value; do not perform a new battery query.
         if (oldShowPercent != _showPercent) {
             rebuildBatteryText();
         }
@@ -310,7 +227,6 @@ class Typeface955Renderer {
     }
 
     function updateCachedData() {
-        // This remains the only normal per-callback system query.
         var clock = System.getClockTime();
         var hourChanged = (clock.hour != _cachedHour);
         var minuteChanged = (clock.min != _cachedMinute) || hourChanged || _timeText == null;
@@ -321,17 +237,15 @@ class Typeface955Renderer {
             _timeText = clock.hour.format("%02d") + clock.min.format("%02d");
         }
 
-        // Calendar work stays hourly. Battery is event-driven through Garmin
-        // complications and therefore does not belong in the normal hot path.
         if (hourChanged || _dateText == null) {
             var today = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
             _dateText = weekdayText(today.day_of_week) + " " + today.day.format("%d");
         }
 
-        // If native complication subscription was unavailable, preserve the
-        // old once-per-hour system-stats fallback.
-        if (!_batterySubscriptionActive && (hourChanged || _batteryText == null)) {
-            sampleBatteryFallback();
+        // Connect IQ 3.4 has no native battery complication subscription.
+        // Sample only once per hour, plus onShow() after returning to the face.
+        if (hourChanged || _batteryText == null) {
+            sampleBattery();
         }
     }
 
@@ -342,8 +256,6 @@ class Typeface955Renderer {
 
         updateCachedData();
 
-        // A complete frame is deliberately redrawn on every Garmin callback.
-        // Returning without drawing can yield a black frame on the physical 955.
         dc.setColor(_backgroundColor, _backgroundColor);
         dc.clear();
 
